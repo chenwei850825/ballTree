@@ -25,7 +25,7 @@ struct ballTreeNode {
 	ballTreeNode *right;
 
 	float **data;   // dataSet in leave node
-	long long *pos;
+	long long pos;
 	int tableSize;
 
 	ballTreeNode();

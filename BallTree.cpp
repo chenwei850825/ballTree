@@ -106,6 +106,8 @@ bool BallTree::makeBallTree(ballTreeNode *&node, int numberOfData, float **dataS
 			rightDataSize++;
 		}
 	}
+	//cout << "leftDataSize " << leftDataSize  << endl;
+	//cout << "rightDataSize " << rightDataSize  << endl;
 	//重新分配数据集
 	float **leftData = new float*[leftDataSize];
 	float **rightData = new float*[rightDataSize];
@@ -145,13 +147,15 @@ BallTree::BallTree() {
 	indexData = 0;
 }
 
-BallTree::BallTree(long long int* pos) {
+BallTree::BallTree(std::map<string, long long> &mapPosition, long long int* pos, int d) {
 	dimension = 0;
 	root = NULL;
 	index = -1;
 	indexData = 0;
 	//this->pos = new long long int[n];
 	this->pos = pos;
+	this->mapPosition = mapPosition;
+	this->d = d;
 }
 BallTree::~BallTree() {
 
@@ -228,15 +232,26 @@ void BallTree::getLeaveNodePreOrder(list<ballTreeNode*> &leave, ballTreeNode* cu
 }
 
 
-void BallTree::linearSearch(float* query, ballTreeNode*& T, priority_queue < pair<float,float*>, vector< pair<float,float*>>, Compare > &nnQuery) {
+void BallTree::linearSearch(float* query, ballTreeNode*& T, priority_queue < tuple<float,float*, long long>, vector< tuple<float,float*, long long>>, Compare > &nnQuery) {
 	float** data = T->data;
 	for (int i = 0; i < T->tableSize; i++) {
 		float* p = data[i];
 		float IP = getDistance(query, p);
-        pair<float,float*> top = nnQuery.top();
-		if (IP <= top.first) {
+        tuple<float,float*, long long> top = nnQuery.top();
+		if (IP <= get<0>(top)) {
 			nnQuery.pop();
-			nnQuery.push(make_pair(IP,p));
+
+			std::stringstream ss;
+			for (int j = 0; j < this->d; j++){
+				ss << std::to_string(int(data[i][j])) << " ";
+			}
+			std::string s = ss.str();
+
+			map<string, long long>::iterator iter;
+			iter = this->mapPosition.find(s);
+			nnQuery.push(make_tuple(IP,p, iter->second));
+			//cout << "tableSize" << T->tableSize << endl;
+			//cout << "linear " << i << " " << p[2] << pos[i] << endl;
 		}
 	}
 	for (int i = 0; i < T->tableSize; i++) {
@@ -246,11 +261,11 @@ void BallTree::linearSearch(float* query, ballTreeNode*& T, priority_queue < pai
 	//delete[] data;
 }
 
-void BallTree::treeSearch(float* query, ballTreeNode* T,  priority_queue < pair<float,float*>, vector< pair<float,float*>>, Compare > &nnQuery) {
-	pair<float,float*> top = nnQuery.top();
+void BallTree::treeSearch(float* query, ballTreeNode* T,  priority_queue < tuple<float,float*, long long>, vector< tuple<float,float*, long long>>, Compare > &nnQuery) {
+	tuple<float,float*, long long> top = nnQuery.top();
 	if (T->indexData != -1) {   // if T is a leaf
 	    float disToVector = getDistance(query, T->mean);
-		if (top.first >= disToVector) {
+		if (get<0>(top) >= disToVector) {
 			linearSearch(query, T, nnQuery);
 		}
 
@@ -260,7 +275,7 @@ void BallTree::treeSearch(float* query, ballTreeNode* T,  priority_queue < pair<
         ballTreeNode* rightChild = T->right;
         float iL = getDistance(query, leftChild->mean) - leftChild->radius;
         float iR = getDistance(query, rightChild->mean) - rightChild->radius;
-        if (top.first < iL && top.first < iR) {
+        if (get<0>(top) < iL && get<0>(top) < iR) {
         }else{
             if(iL < iR){
                 treeSearch(query, leftChild, nnQuery);
@@ -277,11 +292,11 @@ void BallTree::treeSearch(float* query, ballTreeNode* T,  priority_queue < pair<
     }
 }
 
-priority_queue < pair<float,float*>, vector< pair<float,float*>>, Compare > BallTree::nnSearch(int d, int k,float* query) {
-    priority_queue < pair<float,float*>, vector< pair<float,float*>>, Compare > nnQuery;
+priority_queue < tuple<float,float*, long long>, vector< tuple<float,float*, long long>>, Compare > BallTree::nnSearch(int d, int k,float* query) {
+    priority_queue < tuple<float,float*, long long>, vector< tuple<float,float*, long long>>, Compare > nnQuery;
 	//cout << 'here' << endl;
     for (int i=0; i < k; i++){
-        nnQuery.push(make_pair(3.40E+38, nullptr));
+        nnQuery.push(make_tuple (3.40E+38, nullptr, 0));
     }
 	//cout << 'here2' << endl;
 	ballTreeNode* root = this->root;

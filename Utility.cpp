@@ -68,7 +68,6 @@ bool read_data(
 			//cout  << data[i][j] << endl;
 		}
 		fscanf(fin, "%lld", &pos[i]);
-		//cout  << pos[i] << endl;
 	}
 
 	printf("Finish reading %s\n", file_name);

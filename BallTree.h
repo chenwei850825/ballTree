@@ -12,12 +12,14 @@
 #include <fstream>
 #include <queue>
 #include <vector>
+#include <tuple>
+#include <map>
 using namespace std;
 
 #define N0 2
 struct Compare {
-    bool operator()(const pair<float,float*> & a, const pair<float,float*> & b)
-    { return a.first< b.first; }
+    bool operator()(const tuple<float,float*, long long> & a, const tuple<float,float*, long long> & b)
+    { return get<0>(a) < get<0>(b); }
 };
 class BallTree {
 private:
@@ -41,13 +43,13 @@ private:
 
 	void getLeaveNodePreOrder(list<ballTreeNode*> &leave, ballTreeNode* root);
 
-	void treeSearch(float* query, ballTreeNode* T,  priority_queue < pair<float,float*>, vector< pair<float,float*>>, Compare > &nnQuery);
+	void treeSearch(float* query, ballTreeNode* T,  priority_queue < tuple<float,float*, long long>, vector< tuple<float,float*, long long>>, Compare > &nnQuery);
 
-	void linearSearch(float* query, ballTreeNode*& T, priority_queue < pair<float,float*>, vector< pair<float,float*>>, Compare > &nnQuery) ;
+	void linearSearch(float* query, ballTreeNode*& T, priority_queue < tuple<float,float*, long long>, vector< tuple<float,float*, long long>>, Compare > &nnQuery) ;
 
 public:
 	BallTree();
-	BallTree(long long int*);
+	BallTree(map<string, long long> &, long long int*, int);
 	~BallTree();
     ballTreeNode *root;
 
@@ -59,13 +61,14 @@ public:
 		int d,
 		float** data);
     bool printData();
-    priority_queue < pair<float,float*>, vector< pair<float,float*>>, Compare > nnSearch(
+    priority_queue < tuple<float,float*, long long>, vector< tuple<float,float*, long long>>, Compare > nnSearch(
 		int d,
 		int k,
 		float* query);
 	
 	long long int* pos;
-
+	map<string, long long> mapPosition;
+	int d;
 };
 
 #endif
